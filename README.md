@@ -1,1 +1,1 @@
-# csi_registration
+# csi-connect-hub
