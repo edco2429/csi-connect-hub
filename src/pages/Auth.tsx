@@ -9,26 +9,37 @@ const Auth: React.FC = () => {
   const [name, setName] = useState('');
   const [role, setRole] = useState('student');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   
   const { login, register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
     try {
       if (isLogin) {
-        await login(email, password, role);
+        const { error: loginError } = await login(email, password);
+        if (loginError) {
+          setError(loginError.message || 'Login failed');
+        }
       } else {
         if (!name) {
           setError('Name is required');
+          setLoading(false);
           return;
         }
-        await register(email, password, role, name);
+        const { error: registerError } = await register(email, password, role, name);
+        if (registerError) {
+          setError(registerError.message || 'Registration failed');
+        }
       }
-    } catch (err) {
-      setError('Authentication failed');
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed');
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,28 +108,31 @@ const Auth: React.FC = () => {
               />
             </div>
             
-            <div className="mb-4">
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>
-              <select
-                id="role"
-                name="role"
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="committee">Committee</option>
-              </select>
-            </div>
+            {!isLogin && (
+              <div className="mb-4">
+                <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>
+                <select
+                  id="role"
+                  name="role"
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                >
+                  <option value="student">Student</option>
+                  <option value="teacher">Teacher</option>
+                  <option value="committee">Committee</option>
+                </select>
+              </div>
+            )}
           </div>
 
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={loading}
+              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              {isLogin ? 'Sign in' : 'Sign up'}
+              {loading ? 'Processing...' : (isLogin ? 'Sign in' : 'Sign up')}
             </button>
           </div>
           
