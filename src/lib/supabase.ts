@@ -1,11 +1,8 @@
-
 import { createClient } from '@supabase/supabase-js';
+import { supabase as supabaseClient } from '../integrations/supabase/client';
 
-// These will be replaced with actual values once connected to Supabase
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Use the initialized client from the integrations folder
+export const supabase = supabaseClient;
 
 // Type definitions for our database tables
 export type User = {
@@ -15,6 +12,11 @@ export type User = {
   name?: string;
   created_at?: string;
   updated_at?: string;
+  bio?: string;
+  branch?: string;
+  phone?: string;
+  roll_number?: string;
+  year?: string;
 }
 
 export type Event = {
