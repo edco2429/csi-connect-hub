@@ -181,3 +181,47 @@ export const updateUserSettings = async (userId: string, preferences: Record<str
     return { success: true, data };
   }
 };
+
+// Add these new helper functions to better fetch and debug user data
+export const getAllUsers = async () => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*');
+  
+  if (error) {
+    console.error('Error fetching users:', error);
+    return [];
+  }
+  
+  return data as User[];
+};
+
+export const getUserById = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching user by ID:', error);
+    return null;
+  }
+  
+  return data as User;
+};
+
+export const getUserByEmail = async (email: string) => {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching user by email:', error);
+    return null;
+  }
+  
+  return data as User;
+};

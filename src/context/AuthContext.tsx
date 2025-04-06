@@ -30,15 +30,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log("Auth state changed:", event, session?.user?.id);
         if (session) {
-          const { data: userData } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+          try {
+            const { data: userData, error } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+              
+            if (error) {
+              console.error("Error fetching user data:", error);
+            }
             
-          if (userData) {
-            setUser(userData as User);
+            if (userData) {
+              console.log("User data found:", userData);
+              setUser(userData as User);
+            } else {
+              console.warn("No user data found for ID:", session.user.id);
+            }
+          } catch (err) {
+            console.error("Exception in auth state change handler:", err);
           }
         } else {
           setUser(null);
@@ -50,21 +62,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // THEN check for existing session
     const fetchSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Existing session check:", session?.user?.id);
+        
+        if (session) {
+          const { data: userData, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (error) {
+            console.error("Error fetching user data from session:", error);
+          }
           
-        if (userData) {
-          setUser(userData as User);
+          if (userData) {
+            console.log("User data from session:", userData);
+            setUser(userData as User);
+          } else {
+            console.warn("No user data found for session ID:", session.user.id);
+          }
         }
+        
+        setLoading(false);
+      } catch (err) {
+        console.error("Exception in session fetch:", err);
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     fetchSession();
@@ -75,24 +100,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string) => {
+    console.log("Login attempt for email:", email);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     
+    if (error) {
+      console.error("Login error:", error);
+    } else {
+      console.log("Login successful");
+    }
+    
     return { error };
   };
 
   const register = async (email: string, password: string, role: string, name: string) => {
+    console.log("Register attempt:", { email, role, name });
+    
     // Create the auth user
     const { error: signUpError, data } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          name: name
+        }
+      }
     });
 
     if (signUpError || !data.user) {
+      console.error("Signup error:", signUpError);
       return { error: signUpError };
     }
+
+    console.log("Auth signup successful, user ID:", data.user.id);
 
     // Add the user to our users table with the role
     const { error: insertError } = await supabase
@@ -105,6 +147,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name
         }
       ]);
+
+    if (insertError) {
+      console.error("Error inserting user profile:", insertError);
+    } else {
+      console.log("User profile created successfully");
+    }
 
     return { error: insertError };
   };
