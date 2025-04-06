@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase, User } from '../lib/supabase';
+import { supabase } from '../integrations/supabase/client';
+import type { User } from '../lib/supabase';
 
 // Define types
 interface AuthContextType {
@@ -26,28 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get the current session
-    const fetchSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-          
-        if (userData) {
-          setUser(userData as User);
-        }
-      }
-      
-      setLoading(false);
-    };
-
-    fetchSession();
-
-    // Listen for auth changes
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session) {
@@ -67,6 +47,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(false);
       }
     );
+
+    // THEN check for existing session
+    const fetchSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+          
+        if (userData) {
+          setUser(userData as User);
+        }
+      }
+      
+      setLoading(false);
+    };
+
+    fetchSession();
 
     return () => {
       subscription.unsubscribe();
