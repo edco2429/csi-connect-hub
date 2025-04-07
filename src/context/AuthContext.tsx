@@ -29,34 +29,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log("Auth state changed:", event, session?.user?.id);
         if (session) {
           try {
-            const { data: userData, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-              
-            if (error) {
-              console.error("Error fetching user data:", error);
-            }
+            const fetchUserProfile = () => {
+              supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single()
+                .then(({ data: userData, error }) => {
+                  if (error) {
+                    console.error("Error fetching user data:", error);
+                  }
+                  
+                  if (userData) {
+                    console.log("User data found:", userData);
+                    setUser(userData as User);
+                  } else {
+                    console.warn("No user data found for ID:", session.user.id);
+                  }
+                  
+                  setLoading(false);
+                });
+            };
             
-            if (userData) {
-              console.log("User data found:", userData);
-              setUser(userData as User);
-            } else {
-              console.warn("No user data found for ID:", session.user.id);
-            }
+            // Use setTimeout to prevent potential Supabase deadlocks
+            setTimeout(fetchUserProfile, 0);
           } catch (err) {
             console.error("Exception in auth state change handler:", err);
+            setLoading(false);
           }
         } else {
           setUser(null);
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
 

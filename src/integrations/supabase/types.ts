@@ -9,7 +9,141 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      committee_profiles: {
+        Row: {
+          committee_name: string | null
+          created_at: string | null
+          position: string | null
+          profile_id: string
+          term_end: string | null
+          term_start: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          committee_name?: string | null
+          created_at?: string | null
+          position?: string | null
+          profile_id: string
+          term_end?: string | null
+          term_start?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          committee_name?: string | null
+          created_at?: string | null
+          position?: string | null
+          profile_id?: string
+          term_end?: string | null
+          term_start?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "committee_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id: string
+          name: string
+          role: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      student_profiles: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          profile_id: string
+          roll_number: string | null
+          updated_at: string | null
+          year_of_study: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          profile_id: string
+          roll_number?: string | null
+          updated_at?: string | null
+          year_of_study?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          profile_id?: string
+          roll_number?: string | null
+          updated_at?: string | null
+          year_of_study?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_profiles: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          employee_id: string | null
+          profile_id: string
+          specialization: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          employee_id?: string | null
+          profile_id: string
+          specialization?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          employee_id?: string | null
+          profile_id?: string
+          specialization?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -41,6 +42,8 @@ const Auth: React.FC = () => {
         const { error: registerError } = await register(email, password, role, name);
         if (registerError) {
           setError(registerError.message || 'Registration failed');
+        } else {
+          toast.success('Registration successful! Please check your email to confirm your account.');
         }
       }
     } catch (err: any) {
