@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (session) {
           try {
             const { data: userData, error } = await supabase
-              .from('users')
+              .from('profiles')
               .select('*')
               .eq('id', session.user.id)
               .single();
@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (session) {
           const { data: userData, error } = await supabase
-            .from('users')
+            .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .single();
@@ -124,7 +124,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       password,
       options: {
         data: {
-          name: name
+          name: name,
+          role: role
         }
       }
     });
@@ -136,25 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     console.log("Auth signup successful, user ID:", data.user.id);
 
-    // Add the user to our users table with the role
-    const { error: insertError } = await supabase
-      .from('users')
-      .insert([
-        { 
-          id: data.user.id,
-          email,
-          role,
-          name
-        }
-      ]);
-
-    if (insertError) {
-      console.error("Error inserting user profile:", insertError);
-    } else {
-      console.log("User profile created successfully");
-    }
-
-    return { error: insertError };
+    return { error: null };
   };
 
   const logout = async () => {

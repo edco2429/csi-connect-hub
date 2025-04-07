@@ -52,9 +52,8 @@ export type Database = {
         Row: {
           committee_name: string | null
           created_at: string | null
-          id: string
           position: string | null
-          responsibilities: string | null
+          profile_id: string
           term_end: string | null
           term_start: string | null
           updated_at: string | null
@@ -62,9 +61,8 @@ export type Database = {
         Insert: {
           committee_name?: string | null
           created_at?: string | null
-          id: string
           position?: string | null
-          responsibilities?: string | null
+          profile_id: string
           term_end?: string | null
           term_start?: string | null
           updated_at?: string | null
@@ -72,19 +70,18 @@ export type Database = {
         Update: {
           committee_name?: string | null
           created_at?: string | null
-          id?: string
           position?: string | null
-          responsibilities?: string | null
+          profile_id?: string
           term_end?: string | null
           term_start?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "committee_profiles_id_fkey"
-            columns: ["id"]
+            foreignKeyName: "committee_profiles_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: true
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -213,6 +210,33 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id: string
+          name: string
+          role: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       registrations: {
         Row: {
           created_at: string | null
@@ -289,41 +313,35 @@ export type Database = {
       }
       student_profiles: {
         Row: {
-          cgpa: number | null
           created_at: string | null
           department: string | null
-          id: string
+          profile_id: string
           roll_number: string | null
-          semester: number | null
           updated_at: string | null
           year_of_study: number | null
         }
         Insert: {
-          cgpa?: number | null
           created_at?: string | null
           department?: string | null
-          id: string
+          profile_id: string
           roll_number?: string | null
-          semester?: number | null
           updated_at?: string | null
           year_of_study?: number | null
         }
         Update: {
-          cgpa?: number | null
           created_at?: string | null
           department?: string | null
-          id?: string
+          profile_id?: string
           roll_number?: string | null
-          semester?: number | null
           updated_at?: string | null
           year_of_study?: number | null
         }
         Relationships: [
           {
-            foreignKeyName: "student_profiles_id_fkey"
-            columns: ["id"]
+            foreignKeyName: "student_profiles_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: true
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -332,39 +350,33 @@ export type Database = {
         Row: {
           created_at: string | null
           department: string | null
-          designation: string | null
           employee_id: string | null
-          id: string
-          joining_date: string | null
+          profile_id: string
           specialization: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           department?: string | null
-          designation?: string | null
           employee_id?: string | null
-          id: string
-          joining_date?: string | null
+          profile_id: string
           specialization?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           department?: string | null
-          designation?: string | null
           employee_id?: string | null
-          id?: string
-          joining_date?: string | null
+          profile_id?: string
           specialization?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "teacher_profiles_id_fkey"
-            columns: ["id"]
+            foreignKeyName: "teacher_profiles_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: true
-            referencedRelation: "users"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
