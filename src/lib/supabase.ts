@@ -19,6 +19,40 @@ export type User = {
   year?: string;
 }
 
+// New profile type definitions
+export type StudentProfile = {
+  id: string;
+  roll_number?: string;
+  semester?: number;
+  year_of_study?: number;
+  department?: string;
+  cgpa?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type TeacherProfile = {
+  id: string;
+  department?: string;
+  designation?: string;
+  employee_id?: string;
+  specialization?: string;
+  joining_date?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type CommitteeProfile = {
+  id: string;
+  committee_name?: string;
+  position?: string;
+  term_start?: string;
+  term_end?: string;
+  responsibilities?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export type Event = {
   id: string;
   name: string;
@@ -135,6 +169,95 @@ export const updateUserProfile = async (userId: string, updates: Partial<User>) 
   return { success: true, data };
 };
 
+// New functions for profile tables
+export const getStudentProfile = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('student_profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching student profile:', error);
+    return null;
+  }
+  
+  return data as StudentProfile;
+};
+
+export const updateStudentProfile = async (userId: string, updates: Partial<StudentProfile>) => {
+  const { data, error } = await supabase
+    .from('student_profiles')
+    .update(updates)
+    .eq('id', userId);
+  
+  if (error) {
+    console.error('Error updating student profile:', error);
+    return { success: false, error };
+  }
+  
+  return { success: true, data };
+};
+
+export const getTeacherProfile = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('teacher_profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching teacher profile:', error);
+    return null;
+  }
+  
+  return data as TeacherProfile;
+};
+
+export const updateTeacherProfile = async (userId: string, updates: Partial<TeacherProfile>) => {
+  const { data, error } = await supabase
+    .from('teacher_profiles')
+    .update(updates)
+    .eq('id', userId);
+  
+  if (error) {
+    console.error('Error updating teacher profile:', error);
+    return { success: false, error };
+  }
+  
+  return { success: true, data };
+};
+
+export const getCommitteeProfile = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('committee_profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching committee profile:', error);
+    return null;
+  }
+  
+  return data as CommitteeProfile;
+};
+
+export const updateCommitteeProfile = async (userId: string, updates: Partial<CommitteeProfile>) => {
+  const { data, error } = await supabase
+    .from('committee_profiles')
+    .update(updates)
+    .eq('id', userId);
+  
+  if (error) {
+    console.error('Error updating committee profile:', error);
+    return { success: false, error };
+  }
+  
+  return { success: true, data };
+};
+
+// Add these new helper functions to better fetch and debug user data
 export const getUserSettings = async (userId: string) => {
   const { data, error } = await supabase
     .from('settings')
@@ -224,4 +347,18 @@ export const getUserByEmail = async (email: string) => {
   }
   
   return data as User;
+};
+
+// Function to get the appropriate profile based on user role
+export const getUserProfileByRole = async (userId: string, role: 'student' | 'teacher' | 'committee') => {
+  switch (role) {
+    case 'student':
+      return getStudentProfile(userId);
+    case 'teacher':
+      return getTeacherProfile(userId);
+    case 'committee':
+      return getCommitteeProfile(userId);
+    default:
+      return null;
+  }
 };
