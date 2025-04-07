@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import StudentDashboard from '../components/dashboards/StudentDashboard';
 import TeacherDashboard from '../components/dashboards/TeacherDashboard';
 import CommitteeDashboard from '../components/dashboards/CommitteeDashboard';
@@ -10,7 +11,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [activeView, setActiveView] = useState('dashboard');
 
   // Determine which dashboard to render based on user role
@@ -42,15 +43,30 @@ const Dashboard: React.FC<DashboardProps> = () => {
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">
             {user?.role === 'student' ? 'Student Dashboard' : 
              user?.role === 'teacher' ? 'Teacher Dashboard' : 
              user?.role === 'committee' ? 'Committee Dashboard' : 'Dashboard'}
           </h1>
+          <div className="flex items-center space-x-4">
+            <Link to="/signup-tracker" className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 transition-colors">
+              Registration Tracker
+            </Link>
+            <button 
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
       <main>
