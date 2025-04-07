@@ -74,6 +74,45 @@ export type Database = {
         }
         Relationships: []
       }
+      signup_tracking: {
+        Row: {
+          browser: string | null
+          device: string | null
+          email: string
+          id: string
+          ip_address: string | null
+          name: string
+          role: string
+          signup_date: string | null
+          success: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          browser?: string | null
+          device?: string | null
+          email: string
+          id?: string
+          ip_address?: string | null
+          name: string
+          role: string
+          signup_date?: string | null
+          success?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          browser?: string | null
+          device?: string | null
+          email?: string
+          id?: string
+          ip_address?: string | null
+          name?: string
+          role?: string
+          signup_date?: string | null
+          success?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       student_profiles: {
         Row: {
           created_at: string | null

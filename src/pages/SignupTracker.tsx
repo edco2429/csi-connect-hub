@@ -1,11 +1,21 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { User } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
-// Define types for our detailed profiles
-type DetailedProfile = User & {
+// Define type for signup tracking data
+type SignupRecord = {
+  id: string;
+  user_id: string | null;
+  email: string;
+  name: string;
+  role: 'student' | 'teacher' | 'committee';
+  signup_date: string | null;
+  browser: string | null;
+  device: string | null;
+  ip_address: string | null;
+  success: boolean | null;
+  // Include the detailed profiles data for joining
   studentProfile?: {
     roll_number: string | null;
     department: string | null;
@@ -25,81 +35,84 @@ type DetailedProfile = User & {
 };
 
 const SignupTracker: React.FC = () => {
-  const [users, setUsers] = useState<DetailedProfile[]>([]);
+  const [signups, setSignups] = useState<SignupRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'student' | 'teacher' | 'committee'>('all');
   const { user } = useAuth();
 
   useEffect(() => {
-    const fetchProfiles = async () => {
+    const fetchSignupData = async () => {
       try {
         setLoading(true);
-        // Fetch all profiles
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
+        // Fetch signup tracking data
+        const { data: signupData, error: signupError } = await supabase
+          .from('signup_tracking')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('signup_date', { ascending: false });
 
-        if (profilesError) {
-          throw profilesError;
+        if (signupError) {
+          throw signupError;
         }
 
-        // Create a map to store detailed profiles
-        const detailedProfiles: DetailedProfile[] = [];
+        // Create a map to store detailed signup records
+        const detailedSignups: SignupRecord[] = [];
 
-        // Process each profile to fetch role-specific details
-        for (const profile of profilesData || []) {
-          const detailedProfile: DetailedProfile = { ...profile };
+        // Process each signup to fetch role-specific details
+        for (const signup of signupData || []) {
+          const detailedSignup: SignupRecord = { ...signup };
 
-          // Fetch specific profile details based on role
-          if (profile.role === 'student') {
-            const { data: studentData } = await supabase
-              .from('student_profiles')
-              .select('*')
-              .eq('profile_id', profile.id)
-              .single();
-            
-            detailedProfile.studentProfile = studentData;
-          } else if (profile.role === 'teacher') {
-            const { data: teacherData } = await supabase
-              .from('teacher_profiles')
-              .select('*')
-              .eq('profile_id', profile.id)
-              .single();
-            
-            detailedProfile.teacherProfile = teacherData;
-          } else if (profile.role === 'committee') {
-            const { data: committeeData } = await supabase
-              .from('committee_profiles')
-              .select('*')
-              .eq('profile_id', profile.id)
-              .single();
-            
-            detailedProfile.committeeProfile = committeeData;
+          // Fetch profile to get the user ID
+          if (signup.user_id) {
+            // Fetch specific profile details based on role
+            if (signup.role === 'student') {
+              const { data: studentData } = await supabase
+                .from('student_profiles')
+                .select('*')
+                .eq('profile_id', signup.user_id)
+                .single();
+              
+              detailedSignup.studentProfile = studentData;
+            } else if (signup.role === 'teacher') {
+              const { data: teacherData } = await supabase
+                .from('teacher_profiles')
+                .select('*')
+                .eq('profile_id', signup.user_id)
+                .single();
+              
+              detailedSignup.teacherProfile = teacherData;
+            } else if (signup.role === 'committee') {
+              const { data: committeeData } = await supabase
+                .from('committee_profiles')
+                .select('*')
+                .eq('profile_id', signup.user_id)
+                .single();
+              
+              detailedSignup.committeeProfile = committeeData;
+            }
           }
 
-          detailedProfiles.push(detailedProfile);
+          detailedSignups.push(detailedSignup);
         }
 
-        setUsers(detailedProfiles);
+        setSignups(detailedSignups);
       } catch (err: any) {
-        console.error('Error fetching profiles:', err);
-        setError(err.message || 'Failed to fetch profiles');
+        console.error('Error fetching signup data:', err);
+        setError(err.message || 'Failed to fetch signup data');
       } finally {
         setLoading(false);
       }
     };
 
     if (user) {
-      fetchProfiles();
+      fetchSignupData();
     }
   }, [user]);
 
-  // Filter users based on active tab
-  const filteredUsers = users.filter(user => {
+  // Filter signups based on active tab
+  const filteredSignups = signups.filter(signup => {
     if (activeTab === 'all') return true;
-    return user.role === activeTab;
+    return signup.role === activeTab;
   });
 
   if (!user) {
@@ -167,7 +180,7 @@ const SignupTracker: React.FC = () => {
           </nav>
         </div>
 
-        {/* Users table */}
+        {/* Signups table */}
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
@@ -193,62 +206,74 @@ const SignupTracker: React.FC = () => {
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Registration Date
                     </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Device Info
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50">
+                  {filteredSignups.length > 0 ? (
+                    filteredSignups.map((signup) => (
+                      <tr key={signup.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                          <div className="text-sm font-medium text-gray-900">{signup.name}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">{user.email}</div>
+                          <div className="text-sm text-gray-500">{signup.email}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            ${user.role === 'student' ? 'bg-green-100 text-green-800' : 
-                              user.role === 'teacher' ? 'bg-blue-100 text-blue-800' : 
+                            ${signup.role === 'student' ? 'bg-green-100 text-green-800' : 
+                              signup.role === 'teacher' ? 'bg-blue-100 text-blue-800' : 
                               'bg-purple-100 text-purple-800'}`}>
-                            {user.role}
+                            {signup.role}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-900">
-                            {user.role === 'student' && user.studentProfile && (
+                            {signup.role === 'student' && signup.studentProfile && (
                               <div>
-                                <p>Roll Number: {user.studentProfile.roll_number || 'Not provided'}</p>
-                                <p>Department: {user.studentProfile.department || 'Not provided'}</p>
-                                <p>Year: {user.studentProfile.year_of_study || 'Not provided'}</p>
+                                <p>Roll Number: {signup.studentProfile.roll_number || 'Not provided'}</p>
+                                <p>Department: {signup.studentProfile.department || 'Not provided'}</p>
+                                <p>Year: {signup.studentProfile.year_of_study || 'Not provided'}</p>
                               </div>
                             )}
-                            {user.role === 'teacher' && user.teacherProfile && (
+                            {signup.role === 'teacher' && signup.teacherProfile && (
                               <div>
-                                <p>Employee ID: {user.teacherProfile.employee_id || 'Not provided'}</p>
-                                <p>Department: {user.teacherProfile.department || 'Not provided'}</p>
-                                <p>Specialization: {user.teacherProfile.specialization || 'Not provided'}</p>
+                                <p>Employee ID: {signup.teacherProfile.employee_id || 'Not provided'}</p>
+                                <p>Department: {signup.teacherProfile.department || 'Not provided'}</p>
+                                <p>Specialization: {signup.teacherProfile.specialization || 'Not provided'}</p>
                               </div>
                             )}
-                            {user.role === 'committee' && user.committeeProfile && (
+                            {signup.role === 'committee' && signup.committeeProfile && (
                               <div>
-                                <p>Committee: {user.committeeProfile.committee_name || 'Not provided'}</p>
-                                <p>Position: {user.committeeProfile.position || 'Not provided'}</p>
-                                <p>Term: {user.committeeProfile.term_start ? `${user.committeeProfile.term_start} to ${user.committeeProfile.term_end}` : 'Not provided'}</p>
+                                <p>Committee: {signup.committeeProfile.committee_name || 'Not provided'}</p>
+                                <p>Position: {signup.committeeProfile.position || 'Not provided'}</p>
+                                <p>Term: {signup.committeeProfile.term_start ? `${signup.committeeProfile.term_start} to ${signup.committeeProfile.term_end}` : 'Not provided'}</p>
                               </div>
                             )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(user.created_at || '').toLocaleDateString()}
+                          {signup.signup_date ? new Date(signup.signup_date).toLocaleDateString() : 'Not available'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {signup.browser && (
+                            <div>
+                              <p>Browser: {signup.browser}</p>
+                              <p>Device: {signup.device || 'Unknown'}</p>
+                              <p>IP: {signup.ip_address || 'Unknown'}</p>
+                            </div>
+                          ) || 'Not available'}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
                         {activeTab === 'all' ? 
-                          'No users found.' : 
-                          `No ${activeTab} users found.`}
+                          'No signup records found.' : 
+                          `No ${activeTab} signup records found.`}
                       </td>
                     </tr>
                   )}
