@@ -132,7 +132,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ activeView }) => {
             <ul className="divide-y divide-gray-200">
               {registrations.map((reg) => (
                 <li key={reg.id} className="py-3">
-                  <p className="font-medium">{reg.events.name}</p>
+                  <p className="font-medium">{reg.events?.name}</p>
                   <p className="text-sm text-gray-500">
                     Status: <span className={`font-medium ${
                       reg.status === 'approved' ? 'text-green-600' : 

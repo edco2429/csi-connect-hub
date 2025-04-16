@@ -175,3 +175,70 @@ export const getUserById = async (userId: string) => {
   
   return data as User;
 };
+
+// Event-related types and functions
+export type Event = {
+  id: string;
+  name: string;
+  description: string;
+  date: string;
+  time: string;
+  location: string;
+  created_by: string;
+  created_at: string;
+}
+
+export type Registration = {
+  id: string;
+  user_id: string;
+  event_id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+  events?: Event;
+}
+
+// Function to get all events
+export const getEvents = async () => {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .order('date', { ascending: true });
+  
+  if (error) {
+    console.error('Error fetching events:', error);
+    return [];
+  }
+  
+  return data as Event[];
+};
+
+// Function to get user registrations
+export const getUserRegistrations = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('registrations')
+    .select('*, events(*)')
+    .eq('user_id', userId);
+  
+  if (error) {
+    console.error('Error fetching user registrations:', error);
+    return [];
+  }
+  
+  return data as Registration[];
+};
+
+// Function to register for an event
+export const registerForEvent = async (userId: string, eventId: string) => {
+  const { data, error } = await supabase
+    .from('registrations')
+    .insert([
+      { user_id: userId, event_id: eventId, status: 'pending' }
+    ]);
+  
+  if (error) {
+    console.error('Error registering for event:', error);
+    return { success: false, error };
+  }
+  
+  return { success: true, data };
+};
